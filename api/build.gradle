@@ -1,0 +1,54 @@
+buildscript {
+    ext {
+        springBootVersion = '1.5.4.RELEASE'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'java'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+apply plugin: 'org.springframework.boot'
+
+apply from: 'dotenv.gradle'
+
+bootRun() {
+    environment << dotenv
+}
+
+dependencies {
+    ext {
+        lombokVersion = '1.16.16'
+    }
+
+    configurations {
+        compile.exclude module: 'spring-boot-starter-tomcat'
+    }
+
+    // Spring Boot starters
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-undertow'
+//    compile 'org.springframework.boot:spring-boot-devtools'
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Spring AMQP
+    compile('org.springframework.boot:spring-boot-starter-amqp')
+    compile('org.springframework.retry:spring-retry')
+
+    // Lombok
+    compile "org.projectlombok:lombok:${lombokVersion}"
+
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
