@@ -7,9 +7,12 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -56,6 +59,19 @@ public class RabbitMQConfiguration {
 
         log.info("Connection factory created.");
         return new CachingConnectionFactory(cf);
+    }
+
+    @Bean
+    RabbitTemplate rabbitTemplate(org.springframework.amqp.rabbit.connection.ConnectionFactory  cf) {
+        RabbitTemplate template = new RabbitTemplate(cf);
+        RetryTemplate retry = new RetryTemplate();
+        ExponentialBackOffPolicy backOff = new ExponentialBackOffPolicy();
+        backOff.setInitialInterval(1000);
+        backOff.setMultiplier(1.5);
+        backOff.setMaxInterval(60000);
+        retry.setBackOffPolicy(backOff);
+        template.setRetryTemplate(retry);
+        return template;
     }
 
     @Bean
