@@ -10,4 +10,4 @@ before_install:
  - chmod +x gradlew
 
 script:
- - ./gradlew --debug check
+ - ./gradlew check
