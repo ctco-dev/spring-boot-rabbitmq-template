@@ -16,6 +16,8 @@ import static org.mockito.Mockito.doAnswer;
 @Slf4j
 public class SendReceiveTest extends MQTest {
 
+    public static final int SECONDS_TO_WAIT_FOR_RESPONSE = 10;
+
     @Autowired
     ExampleSender sender;
 
@@ -28,11 +30,11 @@ public class SendReceiveTest extends MQTest {
         LatchCountDownAndCallRealMethodAnswer answer = new LatchCountDownAndCallRealMethodAnswer(1);
         doAnswer(answer).when(receiver).onMessage("hello, world");
 
-        log.info("Sending message");
+        log.warn("Sending message");
         sender.send("hello, world");
-        log.info("Message sent, now waiting 2 seconds for response to arrive");
+        log.warn("Message sent, now waiting {} seconds for response to arrive", SECONDS_TO_WAIT_FOR_RESPONSE);
 
-        assertTrue(answer.getLatch().await(2, TimeUnit.SECONDS));
+        assertTrue(answer.getLatch().await(SECONDS_TO_WAIT_FOR_RESPONSE, TimeUnit.SECONDS));
     }
 
 }

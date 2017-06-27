@@ -24,16 +24,16 @@ public abstract class MQTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        log.info("Starting broker");
+        log.warn("Starting broker");
         broker.start();
-        log.info("Broker started");
+        log.warn("Broker started");
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-        log.info("Stopping broker");
+        log.warn("Stopping broker");
         broker.stop();
-        log.info("Broker stopped");
+        log.warn("Broker stopped");
     }
 
 }

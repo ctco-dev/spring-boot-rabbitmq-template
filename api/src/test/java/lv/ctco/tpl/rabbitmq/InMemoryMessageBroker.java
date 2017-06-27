@@ -11,14 +11,11 @@ public class InMemoryMessageBroker {
     private final Broker broker = new Broker();
 
     BrokerOptions brokerOptions() {
-        File tmpFolder = Files.createTempDir();
-
         BrokerOptions brokerOptions = new BrokerOptions();
 
-        brokerOptions.setConfigProperty("qpid.work_dir", tmpFolder.getAbsolutePath());
         brokerOptions.setConfigProperty("qpid.amqp_port", String.valueOf(MQTest.PORT));
         brokerOptions.setInitialConfigurationLocation(getClass().getResource("/initial-config.json").getFile());
-        brokerOptions.setStartupLoggedToSystemOut(false);
+        brokerOptions.setStartupLoggedToSystemOut(true);
 
         return brokerOptions;
     }
