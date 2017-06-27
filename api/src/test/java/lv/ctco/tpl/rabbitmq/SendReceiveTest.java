@@ -28,7 +28,9 @@ public class SendReceiveTest extends MQTest {
         LatchCountDownAndCallRealMethodAnswer answer = new LatchCountDownAndCallRealMethodAnswer(1);
         doAnswer(answer).when(receiver).onMessage("hello, world");
 
+        log.info("Sending message");
         sender.send("hello, world");
+        log.info("Message sent, now waiting 2 seconds for response to arrive");
 
         assertTrue(answer.getLatch().await(2, TimeUnit.SECONDS));
     }

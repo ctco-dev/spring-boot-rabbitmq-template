@@ -3,6 +3,9 @@ language: java
 jdk:
   - oraclejdk8
 
+env:
+ - TERM=dumb
+
 before_install:
  - chmod +x gradlew
 
