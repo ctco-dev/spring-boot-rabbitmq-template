@@ -29,7 +29,7 @@
   "virtualhostnodes": [
     {
       "name": "default",
-      "type": "MEMORY",
+      "type": "JSON",
       "virtualHostInitialConfiguration": "{ \"type\" : \"Memory\" }"
     }
   ]
