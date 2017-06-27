@@ -2,10 +2,10 @@ package lv.ctco.tpl.rabbitmq.configuration;
 
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import lv.ctco.tpl.rabbitmq.configuration.sleuth.SleuthAMQPMessageListenerAdvice;
+import lv.ctco.tpl.rabbitmq.configuration.sleuth.SleuthAMQPMessagePostProcessor;
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,7 +62,8 @@ public class RabbitMQConfiguration {
     }
 
     @Bean
-    RabbitTemplate rabbitTemplate(org.springframework.amqp.rabbit.connection.ConnectionFactory  cf) {
+    RabbitTemplate rabbitTemplate(org.springframework.amqp.rabbit.connection.ConnectionFactory  cf,
+                                  SleuthAMQPMessagePostProcessor messagePostProcessor) {
         RabbitTemplate template = new RabbitTemplate(cf);
         RetryTemplate retry = new RetryTemplate();
         ExponentialBackOffPolicy backOff = new ExponentialBackOffPolicy();
@@ -71,7 +72,17 @@ public class RabbitMQConfiguration {
         backOff.setMaxInterval(60000);
         retry.setBackOffPolicy(backOff);
         template.setRetryTemplate(retry);
+        template.setBeforePublishPostProcessors(messagePostProcessor);
         return template;
+    }
+
+    @Bean
+    SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(org.springframework.amqp.rabbit.connection.ConnectionFactory  cf,
+                                                                        SleuthAMQPMessageListenerAdvice advice) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(cf);
+        factory.setAdviceChain(advice);
+        return factory;
     }
 
     @Bean

@@ -9,14 +9,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @SpringBootTest(properties = {
         "rabbitmq.host=localhost",
-        "rabbitmq.port=" + MQTest.PORT,
+        "rabbitmq.port=" + IntegrationTest.PORT,
         "rabbitmq.virtual-host=default",
         "rabbitmq.username=guest",
         "rabbitmq.password=guest"
 })
 @RunWith(SpringRunner.class)
 @Slf4j
-public abstract class MQTest {
+public abstract class IntegrationTest {
 
     public static final int PORT = 5672;
 
