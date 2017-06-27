@@ -8,6 +8,7 @@ Template for applications based on Spring Boot and RabbitMQ
 
 - Default configuration for RabbitMQ
 - Integration testing using `spring-rabbit-test` and `qpid` as in-memory AMQP broker
+- Sleuth support to propagate correlation information between endpoints
 
 ## Required Software
 
@@ -34,7 +35,7 @@ Most simple way to get RabbitMQ up and running is to use docker:
 
 `docker run -d -p 5672:5672 -p 15672:15672 rabbitmq`
 
-Or just run it `with docker-compose`:
+Or just run it with `docker-compose`:
 
 ```
 docker-compose up
@@ -74,4 +75,5 @@ gradlew test
 
 - [Spring Boot](https://projects.spring.io/spring-boot/) : Application framework
 - [Lombok](https://projectlombok.org/features/index.html) : Utility library for Java language
-- [RabbitMQ](https://www.rabbitmq.com/): Message broker
+- [RabbitMQ](https://www.rabbitmq.com/) : Message broker
+- [Sleuth](https://cloud.spring.io/spring-cloud-sleuth/) : Distributed tracing solution 
