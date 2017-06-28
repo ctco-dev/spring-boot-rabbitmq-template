@@ -12,6 +12,8 @@ import java.util.Map;
 @Component
 public class SleuthMessageBridge {
 
+    public static final String TRACE_ID_HIGH_NAME = "X-B3-TraceIdHigh";
+
     @Autowired
     Tracer tracer;
 
@@ -24,8 +26,9 @@ public class SleuthMessageBridge {
             span = tracer.createSpan(entryPoint);
         }
         
-        properties.setHeader(Span.SPAN_ID_NAME, span.getTraceId());
+        properties.setHeader(Span.SPAN_ID_NAME, span.getSpanId());
         properties.setHeader(Span.TRACE_ID_NAME, span.getTraceId());
+        properties.setHeader(TRACE_ID_HIGH_NAME, span.getTraceIdHigh());
         properties.setHeader(Span.PROCESS_ID_NAME, span.getProcessId());
         properties.setHeader(Span.SPAN_NAME_NAME, span.getName());
     }
@@ -37,6 +40,7 @@ public class SleuthMessageBridge {
         if (headers.containsKey(Span.TRACE_ID_NAME)) {
             span = Span.builder()
                     .traceId((Long) headers.get(Span.TRACE_ID_NAME))
+                    .traceIdHigh((Long) headers.get(TRACE_ID_HIGH_NAME))
                     .spanId((Long) headers.get(Span.SPAN_ID_NAME))
                     .name((String) headers.get(Span.SPAN_NAME_NAME))
                     .processId((String) headers.get(Span.PROCESS_ID_NAME))
