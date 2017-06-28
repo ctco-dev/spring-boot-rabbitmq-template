@@ -4,9 +4,11 @@ import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import lv.ctco.tpl.rabbitmq.configuration.sleuth.SleuthAMQPMessageListenerAdvice;
 import lv.ctco.tpl.rabbitmq.configuration.sleuth.SleuthAMQPMessagePostProcessor;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Exchange;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +23,6 @@ import java.security.NoSuchAlgorithmException;
 @Slf4j
 public class RabbitMQConfiguration {
 
-    public static final String QUEUE_NAME = "queue";
     public static final String EXCHANGE_NAME = "exchange";
 
 
@@ -62,9 +63,15 @@ public class RabbitMQConfiguration {
     }
 
     @Bean
+    RabbitAdmin rabbitAdmin(org.springframework.amqp.rabbit.connection.ConnectionFactory  cf) {
+        return new RabbitAdmin(cf);
+    }
+
+    @Bean
     RabbitTemplate rabbitTemplate(org.springframework.amqp.rabbit.connection.ConnectionFactory  cf,
                                   SleuthAMQPMessagePostProcessor messagePostProcessor) {
         RabbitTemplate template = new RabbitTemplate(cf);
+        template.setExchange(EXCHANGE_NAME);
         RetryTemplate retry = new RetryTemplate();
         ExponentialBackOffPolicy backOff = new ExponentialBackOffPolicy();
         backOff.setInitialInterval(1000);
@@ -86,18 +93,8 @@ public class RabbitMQConfiguration {
     }
 
     @Bean
-    Queue queue() {
-        return new Queue(QUEUE_NAME, false);
-    }
-
-    @Bean
-    TopicExchange exchange() {
+    Exchange exchange() {
         return new TopicExchange(EXCHANGE_NAME);
-    }
-
-    @Bean
-    Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(QUEUE_NAME);
     }
 
 }

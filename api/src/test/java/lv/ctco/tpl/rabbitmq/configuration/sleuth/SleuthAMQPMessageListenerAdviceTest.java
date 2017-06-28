@@ -1,8 +1,8 @@
 package lv.ctco.tpl.rabbitmq.configuration.sleuth;
 
 import lv.ctco.tpl.rabbitmq.IntegrationTest;
-import lv.ctco.tpl.rabbitmq.configuration.RabbitMQConfiguration;
 import lv.ctco.tpl.rabbitmq.example.ExampleReceiver;
+import lv.ctco.tpl.rabbitmq.example.ExampleRoutingKeys;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -45,7 +45,7 @@ public class SleuthAMQPMessageListenerAdviceTest extends IntegrationTest {
         tracer.close(tracer.getCurrentSpan());
         Message message = new Message(messageContent.getBytes(), MessagePropertiesBuilder.newInstance().setContentType(MessageProperties.CONTENT_TYPE_TEXT_PLAIN).build());
 
-        template.send(RabbitMQConfiguration.QUEUE_NAME, message);
+        template.send(ExampleRoutingKeys.EXAMPLE, message);
         tracer.close(tracer.getCurrentSpan());
         long traceId = (Long) message.getMessageProperties().getHeaders().get(Span.TRACE_ID_NAME);
         long spanId = (Long) message.getMessageProperties().getHeaders().get(Span.SPAN_ID_NAME);
