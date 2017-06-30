@@ -14,6 +14,11 @@ public class ExampleSender {
 
     public void send(String message) {
         log.info("Sending message: {}", message);
-        template.convertAndSend(ExampleRoutingKeys.EXAMPLE, message);
+        template.convertAndSend(ExampleRoutingKeys.AS_STRING, message);
+    }
+
+    public void sendAsObject(ExampleBean message) {
+        log.info("Sending message as object: {}", message);
+        template.convertAndSend(ExampleRoutingKeys.AS_OBJECT, message);
     }
 }

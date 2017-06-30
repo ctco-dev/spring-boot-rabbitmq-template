@@ -1,5 +1,7 @@
 package lv.ctco.tpl.rabbitmq.configuration;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import lv.ctco.tpl.rabbitmq.configuration.sleuth.SleuthAMQPMessageListenerAdvice;
@@ -10,6 +12,7 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +41,13 @@ public class RabbitMQConfiguration {
     String virtualHost;
     @Value("${rabbitmq.use-ssl:false}")
     boolean useSSL;
+
+    @Bean
+    ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return mapper;
+    }
 
     @Bean
     CachingConnectionFactory connectionFactory() {
@@ -69,7 +79,8 @@ public class RabbitMQConfiguration {
 
     @Bean
     RabbitTemplate rabbitTemplate(org.springframework.amqp.rabbit.connection.ConnectionFactory  cf,
-                                  SleuthAMQPMessagePostProcessor messagePostProcessor) {
+                                  SleuthAMQPMessagePostProcessor messagePostProcessor,
+                                  ObjectMapper mapper) {
         RabbitTemplate template = new RabbitTemplate(cf);
         template.setExchange(EXCHANGE_NAME);
         RetryTemplate retry = new RetryTemplate();
@@ -80,15 +91,18 @@ public class RabbitMQConfiguration {
         retry.setBackOffPolicy(backOff);
         template.setRetryTemplate(retry);
         template.setBeforePublishPostProcessors(messagePostProcessor);
+        template.setMessageConverter(new Jackson2JsonMessageConverter(mapper));
         return template;
     }
 
     @Bean
     SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(org.springframework.amqp.rabbit.connection.ConnectionFactory  cf,
-                                                                        SleuthAMQPMessageListenerAdvice advice) {
+                                                                        SleuthAMQPMessageListenerAdvice advice,
+                                                                        ObjectMapper mapper) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(cf);
         factory.setAdviceChain(advice);
+        factory.setMessageConverter(new Jackson2JsonMessageConverter(mapper));
         return factory;
     }
 

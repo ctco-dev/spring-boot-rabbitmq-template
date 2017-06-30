@@ -11,15 +11,15 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class ExampleReceiver {
+public class ExampleStringReceiver {
 
-    public static final String ID = "exampleReceiver";
+    public static final String ID = "exampleStringReceiver";
 
     @RabbitListener(id = ID, bindings = {
             @QueueBinding(
                     value = @Queue,
-                    exchange = @Exchange(value = RabbitMQConfiguration.EXCHANGE_NAME, type = ExchangeTypes.TOPIC),
-                    key = ExampleRoutingKeys.EXAMPLE
+                    exchange = @Exchange(value = RabbitMQConfiguration.EXCHANGE_NAME, type = ExchangeTypes.TOPIC, durable = "true"),
+                    key = ExampleRoutingKeys.AS_STRING
             )
     })
     public void onMessage(String message) {

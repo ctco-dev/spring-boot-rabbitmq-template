@@ -1,7 +1,9 @@
 package lv.ctco.tpl.rabbitmq.configuration.sleuth;
 
 import lv.ctco.tpl.rabbitmq.IntegrationTest;
-import lv.ctco.tpl.rabbitmq.example.ExampleReceiver;
+import lv.ctco.tpl.rabbitmq.example.ExampleBean;
+import lv.ctco.tpl.rabbitmq.example.ExampleObjectReceiver;
+import lv.ctco.tpl.rabbitmq.example.ExampleStringReceiver;
 import lv.ctco.tpl.rabbitmq.example.ExampleRoutingKeys;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -23,6 +25,7 @@ import java.util.function.Supplier;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 
 public class SleuthAMQPMessageListenerAdviceTest extends IntegrationTest {
@@ -38,14 +41,14 @@ public class SleuthAMQPMessageListenerAdviceTest extends IntegrationTest {
     @Test
     public void testExtractTraceId_NoCurrentSpan() throws Exception {
         String messageContent = UUID.randomUUID().toString();
-        ExampleReceiver receiver = harness.getSpy(ExampleReceiver.ID);
+        ExampleStringReceiver receiver = harness.getSpy(ExampleStringReceiver.ID);
         ValueAnswer<Span> answer = new ValueAnswer<>(() -> tracer.getCurrentSpan());
-        doAnswer(answer).when(receiver).onMessage(messageContent);
+        doAnswer(answer).when(receiver).onMessage(anyString());
 
         tracer.close(tracer.getCurrentSpan());
         Message message = new Message(messageContent.getBytes(), MessagePropertiesBuilder.newInstance().setContentType(MessageProperties.CONTENT_TYPE_TEXT_PLAIN).build());
 
-        template.send(ExampleRoutingKeys.EXAMPLE, message);
+        template.send(ExampleRoutingKeys.AS_STRING, message);
         tracer.close(tracer.getCurrentSpan());
         long traceId = (Long) message.getMessageProperties().getHeaders().get(Span.TRACE_ID_NAME);
         long spanId = (Long) message.getMessageProperties().getHeaders().get(Span.SPAN_ID_NAME);
