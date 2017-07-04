@@ -1,10 +1,8 @@
 package lv.ctco.tpl.rabbitmq.configuration.sleuth;
 
 import lv.ctco.tpl.rabbitmq.IntegrationTest;
-import lv.ctco.tpl.rabbitmq.example.ExampleBean;
-import lv.ctco.tpl.rabbitmq.example.ExampleObjectReceiver;
-import lv.ctco.tpl.rabbitmq.example.ExampleStringReceiver;
 import lv.ctco.tpl.rabbitmq.example.ExampleRoutingKeys;
+import lv.ctco.tpl.rabbitmq.example.ExampleStringReceiver;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -17,13 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -39,23 +40,27 @@ public class SleuthAMQPMessageListenerAdviceTest extends IntegrationTest {
     RabbitListenerTestHarness harness;
 
     @Test
-    public void testExtractTraceId_NoCurrentSpan() throws Exception {
+    public void testExtractTraceId_currentSpan() throws Exception {
         String messageContent = UUID.randomUUID().toString();
         ExampleStringReceiver receiver = harness.getSpy(ExampleStringReceiver.ID);
         ValueAnswer<Span> answer = new ValueAnswer<>(() -> tracer.getCurrentSpan());
         doAnswer(answer).when(receiver).onMessage(anyString());
 
-        tracer.close(tracer.getCurrentSpan());
-        Message message = new Message(messageContent.getBytes(), MessagePropertiesBuilder.newInstance().setContentType(MessageProperties.CONTENT_TYPE_TEXT_PLAIN).build());
+        MessageProperties properties = MessagePropertiesBuilder.newInstance()
+                .setContentType(MessageProperties.CONTENT_TYPE_TEXT_PLAIN).build();
 
+        Message message = new Message(messageContent.getBytes(), properties);
+        tracer.createSpan("root");
         template.send(ExampleRoutingKeys.AS_STRING, message);
         tracer.close(tracer.getCurrentSpan());
-        long traceId = (Long) message.getMessageProperties().getHeaders().get(Span.TRACE_ID_NAME);
-        long spanId = (Long) message.getMessageProperties().getHeaders().get(Span.SPAN_ID_NAME);
+
+        Map<String, Object> headers = message.getMessageProperties().getHeaders();
+        String traceIdString = (String) headers.get(Span.TRACE_ID_NAME);
+        long spanId = Span.hexToId((String) headers.get(Span.SPAN_ID_NAME));
 
         Span span = answer.getValue().poll(10, TimeUnit.SECONDS);
         assertThat(span, is(notNullValue()));
-        assertThat(span.getTraceId(), is(traceId));
+        assertThat(span.traceIdString(), is(traceIdString));
         assertThat(span.getSpanId(), is(not(spanId)));
         assertThat(span.getParents().get(0), is(spanId));
     }

@@ -14,7 +14,7 @@ public class SleuthAMQPMessagePostProcessor implements MessagePostProcessor {
 
     @Override
     public Message postProcessMessage(Message message) throws AmqpException {
-        bridge.populateHeaders(message, "sendMessage");
+        bridge.populateHeaders(message);
         return message;
     }
 }

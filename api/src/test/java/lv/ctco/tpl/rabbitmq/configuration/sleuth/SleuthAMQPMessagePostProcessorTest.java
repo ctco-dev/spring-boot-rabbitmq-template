@@ -10,10 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class SleuthAMQPMessagePostProcessorTest extends IntegrationTest {
 
@@ -33,9 +34,10 @@ public class SleuthAMQPMessagePostProcessorTest extends IntegrationTest {
         Span root = tracer.createSpan("root");
         Message message = new Message("hello".getBytes(), new MessageProperties());
         template.send(message);
-        assertThat(message.getMessageProperties().getHeaders().get(Span.TRACE_ID_NAME), is(root.getTraceId()));
-        assertThat(message.getMessageProperties().getHeaders().get(Span.SPAN_ID_NAME), is(root.getSpanId()));
-        assertThat(message.getMessageProperties().getHeaders().get(Span.SPAN_NAME_NAME), is(root.getName()));
+        Map<String, Object> headers = message.getMessageProperties().getHeaders();
+        assertThat(headers.get(Span.TRACE_ID_NAME), is(root.traceIdString()));
+        assertThat(Span.hexToId((String) headers.get(Span.SPAN_ID_NAME)), is(root.getSpanId()));
+        assertThat(headers.get(Span.SPAN_NAME_NAME), is(root.getName()));
 
     }
 
@@ -43,10 +45,9 @@ public class SleuthAMQPMessagePostProcessorTest extends IntegrationTest {
     public void testPopulate_NewSpan() throws Exception {
         Message message = new Message("hello".getBytes(), new MessageProperties());
         template.send(message);
-        assertThat(message.getMessageProperties().getHeaders().get(Span.TRACE_ID_NAME), is(notNullValue()));
-        assertThat(message.getMessageProperties().getHeaders().get(Span.SPAN_ID_NAME), is(notNullValue()));
-        assertThat(message.getMessageProperties().getHeaders().get(Span.SPAN_NAME_NAME), is(notNullValue()));
-
+        Map<String, Object> headers = message.getMessageProperties().getHeaders();
+        assertThat(headers.get(Span.TRACE_ID_NAME), is(nullValue()));
+        assertThat(headers.get(Span.SPAN_ID_NAME), is(nullValue()));
+        assertThat(headers.get(Span.SPAN_NAME_NAME), is(nullValue()));
     }
-
 }
